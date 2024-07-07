@@ -47,13 +47,20 @@ Rails.application.configure do
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = true
 
-  # Info include generic and useful information about system operation, but avoids logging too much
+  # Prepend all log lines with the following tags.
+  config.log_tags = [ :request_id ]
+
+  # "info" includes generic and useful information about system operation, but avoids logging too much
   # information to avoid inadvertent exposure of personally identifiable information (PII). If you
   # want to log everything, set the level to "debug".
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
-  # Prepend all log lines with the following tags.
-  config.log_tags = [ :request_id ]
+  # Use a different cache store in production.
+  # config.cache_store = :mem_cache_store
+
+  # Use a real queuing backend for Active Job (and separate queues per environment).
+  # config.active_job.queue_adapter = :resque
+  # config.active_job.queue_name_prefix = "hello_production"
 
   config.action_mailer.perform_caching = false
 
@@ -81,4 +88,5 @@ Rails.application.configure do
   # ]
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  config.hosts << ENV['ALLOWED_HOST']
 end

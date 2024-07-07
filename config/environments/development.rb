@@ -83,4 +83,11 @@ Rails.application.configure do
   # Docker supports a bunch of ranges so let's just support everything. This
   # isn't insecure due to only running in development.
   config.web_console.allowed_ips = ["0.0.0.0/0"]
+
+  config.generators.after_generate do |files|
+    parsable_files = files.filter { |file| file.end_with?('.rb') }
+    unless parsable_files.empty?
+      system("bundle exec rubocop -A --fail-level=E #{parsable_files.shelljoin}", exception: true)
+    end
+  end
 end

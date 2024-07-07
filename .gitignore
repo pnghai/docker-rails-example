@@ -8,9 +8,18 @@ tmp/*
 !log/.keep
 !tmp/.keep
 
+# Ignore pidfiles, but keep the directory.
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
+
 # Ignore uploaded files in development.
-storage/*
-!storage/.keep
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/
+!/tmp/storage/.keep
+!tmp/cache/assets/.keep
 
 # Ignore master key for decrypting credentials.
 config/master.key

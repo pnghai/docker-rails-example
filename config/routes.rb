@@ -22,4 +22,10 @@ Rails.application.routes.draw do
   # end
 
   # Learn more about this file at: https://guides.rubyonrails.org/routing.html
+ # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
+  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  get "up" => "rails/health#show", as: :rails_health_check
+  mount RailsPgExtras::Web::Engine, at: 'pg_extras'
+  #RAILS_PG_EXTRAS_USER RAILS_PG_EXTRAS_PASSWORD
+  #
 end
