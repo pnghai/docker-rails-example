@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   root to: "pages#home"
 
-  get "/up/", to: "up#index", as: :up
+  # get "/up/", to: "up#index", as: :up
   get "/up/databases", to: "up#databases", as: :up_databases
 
   # Sidekiq has a web dashboard which you can enable below. It's turned off by
@@ -11,7 +11,7 @@ Rails.application.routes.draw do
   # Uncomment the 2 lines below to enable the dashboard WITHOUT authentication,
   # but be careful because even anonymous web visitors will be able to see it!
   # require "sidekiq/web"
-  # mount Sidekiq::Web => "/sidekiq"
+  mount Sidekiq::Web => "/sidekiq"
   #
   # If you add Devise to this project and happen to have an admin? attribute
   # on your user you can uncomment the 4 lines below to only allow access to

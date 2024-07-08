@@ -1,0 +1,21 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name=" Rails Compose Dev" type="docker-deploy" factoryName="docker-compose.yml" server-name="Docker">
+    <deployment type="docker-compose.yml">
+      <settings>
+        <option name="envFilePath" value="" />
+        <option name="services">
+          <list>
+            <option value="web" />
+            <option value="worker" />
+            <option value="css" />
+            <option value="js" />
+            <option value="mailpit" />
+          </list>
+        </option>
+        <option name="sourceFilePath" value="docker-compose.yml" />
+        <option name="upDetach" value="false" />
+      </settings>
+    </deployment>
+    <method v="2" />
+  </configuration>
+</component>

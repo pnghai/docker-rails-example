@@ -1,0 +1,36 @@
+version: '2.4'
+services:
+  nginx:
+    build:
+      context: ./.dockerdev/nginx
+    ports:
+      - "80:80"
+    restart: on-failure:2
+    volumes_from:
+      - rails
+  runner:
+    extends:
+      file: docker-compose.yml
+      service: runner
+#    environment: &env
+  rails:
+    extends:
+      file: docker-compose.yml
+      service: rails
+    environment: &env
+      RAILS_MAX_THREADS: 20
+      RAILS_SERVE_STATIC_FILES: enabled
+      RAILS_LOG_TO_STDOUT: 1
+#    volumes: &volumes
+    restart: on-failure:2
+  sidekiq:
+    extends:
+      file: docker-compose.yml
+      service: sidekiq
+    environment: *env
+#    volumes: *volumes
+    restart: on-failure:2
+volumes:
+  bundle:
+  rails_cache:
+  assets:
