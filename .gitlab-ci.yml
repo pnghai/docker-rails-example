@@ -1,0 +1,156 @@
+# do not use "latest" here, if you want this to work in the future
+image: docker:24.0.7
+
+# https://viblo.asia/p/nhap-mon-cicd-voi-gitlab-07LKX9WPZV4#_commit-code-va-push-image-3
+#prIvAtE runneR: https://docs.gitlab.com/runner/#:~:text=GitLab%20Runner%20is%20the%20open,GitLab%20that%20coordinates%20the%20jobs.
+services:
+  - docker:24.0.7-dind # cầu nối giữa docker-cli và docker daemon (docker server),chạy Docker command bên trong docker image, docker image ở đây là docker:24.0.7
+
+stages:
+  - build # Mỗi stage có thể có nhiều job, ta có thể có build1, build2,....
+  - test
+  - codecov
+  - release
+  - deploy
+# https://docs.gitlab.com/ee/ci/variables/
+before_script:
+  - docker version
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+build:
+  stage: build
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:latest || true
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  only:
+    changes:
+      - Dockerfile
+      - app/*
+      - test/*
+      - package.json
+      #
+
+test:
+  stage: test
+  before_script:
+    - docker compose version
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
+  script:
+    - docker compose up -d
+    - sleep 15
+    - ./run test
+#      docker compose exec -T web npm run test
+  # todo: coverage test https://viblo.asia/p/automation-test-voi-docker-va-gitlab-ci-yMnKMv2DZ7P
+
+release-tag:
+  variables:
+    GIT_STRATEGY: none
+  stage: release
+  except:
+    - master
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+
+release-latest:
+  variables:
+    GIT_STRATEGY: none
+  stage: release
+  only:
+    - master
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:latest
+
+      # linting-code
+      # linting commit msg
+      # test: coverage, e2e, unit
+deploy:
+  stage: deploy
+  variables:
+    GIT_STRATEGY: none
+  only:
+    - master
+  before_script:
+    - apk update && apk add openssh-client bash
+  script:
+    # chạy ssh-agent tương ứng với Gitlab Runner hiện tại
+    - eval $(ssh-agent -s)
+
+    # thêm nội dung của biến SSH_PRIVATE_KEY vào agent store
+    - bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY")'
+
+    # tạo folder ~/.ssh
+    - mkdir -p ~/.ssh
+
+    # Scan lấy SSH Host key cho địa chỉ IP server
+    # Được kết quả bao nhiêu thì thêm vào file known_hosts
+    - ssh-keyscan -H $SSH_SERVER_IP >> ~/.ssh/known_hosts
+
+    # Sửa lại quyền của file known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+    # Thực hiện SSH vào server, login vào Registry, chuyển tới folder project
+    # Down project, pull image về, up project và xoá đi image cũ
+    - >
+      ssh $SSH_USER@$SSH_SERVER_IP
+      "docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY};
+      cd ${PATH_TO_PROJECT};
+      docker-compose down;
+      docker pull ${CI_REGISTRY_IMAGE}:latest;
+      docker-compose up -d;
+      docker image prune -f;"
+
+#https://k8syaml.com/
+
+code coverage:
+  stage: codecov
+  when: always # Always try to generate a code coverage report
+  coverage: '/LOC\s\(\d+\.\d+%\)\scovered/'
+  script:
+    - bundle exec rake merge_coverage_reports
+  artifacts: # Release the final, merged coverage for review
+    paths:
+      - "coverage/"
+    name: "Pipeline $CI_PIPELINE_ID Merged Coverage"
+
+
+.base-rspec:
+  stage: test
+  coverage: '/LOC\s\(\d+\.\d+%\)\scovered/'
+  image: ruby:2.6.3-buster
+  before_script:
+    - gem install bundler
+    - bundle install --jobs $(nproc) --path vendor "${FLAGS[@]}"
+  variables:
+    COVERAGE: "true"
+  artifacts:
+    paths:
+      - "coverage/$CI_JOB_NAME" # look for the unique CI_JOB_NAME folder for this run
+    name: "$CI_JOB_NAME Coverage" # Give it a unique artifact name
+    when: always # Always extract the artifact, even if not all tests passed.
+
+rspec-models:
+  extends: .base-rspec
+  script:
+    - bundle exec rspec spec/models
+
+rspec-controllers:
+  extends: .base-rspec
+  script:
+    - bundle exec rspec spec/controllers
+
+rspec-lib:
+  extends: .base-rspec
+  script:
+    - bundle exec rspec spec/lib
+
+rspec-features:
+  extends: .base-rspec
+  script:
+    - bundle exec rspec spec/features

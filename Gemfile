@@ -58,6 +58,7 @@ group :development, :test do
   gem 'debug', platforms: %i[mri mingw x64_mingw]
   gem 'rspec-rails', '~> 6.1', '>= 6.1.3'
   gem 'rubocop-rspec', '~> 3.0', '>= 3.0.2'
+  gem 'simplecov'
 end
 
 group :development do
@@ -71,10 +72,13 @@ group :development do
   gem 'rubocop-performance', '~> 1.13', '>= 1.13.2'
   gem 'rubocop-rails', '~> 2.25', '>= 2.25.1', require: false
   gem 'web-console'
+  gem 'scout_apm'
 
   # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
   gem 'better_errors'
   gem 'rack-mini-profiler'
+  gem 'memory_profiler'
+  gem 'stackprof'
   # エラー画面でREPL実行できるように
   gem 'binding_of_caller'
   # N+1問題を発見してくれる

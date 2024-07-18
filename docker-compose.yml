@@ -1,11 +1,14 @@
 #todo saving cost of images
 x-app: &default-app
   image: app:0.0.1
+#  image: registry.gitlab.com/maitrungduc1410/cicd-automation-test:latest
   build:
     context: "."
     dockerfile: ./.dockerdev/Dockerfile
     target: "app"
     args:
+      - "BUNDLE_WITHOUT=${BUNDLE_WITHOUT:-development:test}"
+      - "BUNDLE_FROZEN=${BUNDLE_FROZEN:-1}"
       - "UID=${UID:-1000}"
       - "GID=${GID:-1000}"
       - "RAILS_ENV=${RAILS_ENV:-production}"
@@ -36,10 +39,11 @@ x-app: &default-app
       condition: "service_started"
       required: false
   volumes:
-    - "${DOCKER_WEB_VOLUME:-./public:/app/public:cached}"
     - rails_cache:/app/tmp/cache
+    - build_asset:/app/assets/builds
     - bundle_cache:/usr/local/bundle
     - assets:/app/public/assets
+    - "${DOCKER_WEB_VOLUME:-./public:/app/public:cached}"
     - .dockerdev/.psqlrc:/root/.psqlrc:ro
 x-assets: &default-assets
   image: assets:0.0.1
@@ -48,6 +52,8 @@ x-assets: &default-assets
     dockerfile: ./.dockerdev/Dockerfile
     target: "assets"
     args:
+      - "BUNDLE_WITHOUT=${BUNDLE_WITHOUT:-development:test}"
+      - "BUNDLE_FROZEN=${BUNDLE_FROZEN:-1}"
       - "UID=${UID:-1000}"
       - "GID=${GID:-1000}"
       - "RAILS_ENV=${RAILS_ENV:-production}"
@@ -61,11 +67,12 @@ x-assets: &default-assets
   stop_grace_period: "3s"
   tty: true
   volumes:
-    - "${DOCKER_WEB_VOLUME:-./public:/app/public:cached}"
     - assets:/app/public/assets
+    - build_asset:/app/assets/builds
     - bundle_cache:/usr/local/bundle
     - yarn_cache:/yarn
     - node_modules_cache:/node_modules
+    - "${DOCKER_WEB_VOLUME:-./public:/app/public:cached}"
 services:
   postgres:
     deploy:
@@ -111,17 +118,17 @@ services:
         limits:
           cpus: "${DOCKER_REDIS_CPUS:-0}"
           memory: "${DOCKER_REDIS_MEMORY:-0}"
-    image: "redis:7.2.5-bookworm"
+    image: "redis:7.2.5-alpine"
     profiles: [ "redis" ]
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
     stop_grace_period: "3s"
     ports:
       - 6379
     healthcheck:
-      test: redis-cli ping
-      interval: 1s
-      timeout: 3s
-      retries: 30
+      test: ["CMD", "redis-cli","ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     volumes:
       - "redis:/data"
 
@@ -214,9 +221,12 @@ volumes:
   postgres: { }
   redis: { }
   assets: { }
+  build_asset: { }
   bundle_cache: { }
   rails_cache: { }
   yarn_cache: {}
   node_modules_cache: {}
   minio: {}
   mailpit: {}
+
+#  https://viblo.asia/p/deploy-elk-stack-voi-docker-Ny0VG7a5VPA elk stack

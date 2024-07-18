@@ -8,11 +8,6 @@ services:
     restart: on-failure:2
     volumes_from:
       - rails
-  runner:
-    extends:
-      file: docker-compose.yml
-      service: runner
-#    environment: &env
   rails:
     extends:
       file: docker-compose.yml
