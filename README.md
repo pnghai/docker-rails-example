@@ -172,7 +172,9 @@ Visit <http://localhost:8000> in your favorite browser.
 
 ```sh
 # You can run this from the same terminal as before.
-./run test
+./run test -b -c
+# -b: rebuild js/ccss
+# -c:coverage report
 ```
 
 You can also run `./run test -b` with does the same thing but builds your JS
@@ -287,7 +289,7 @@ adding custom changes.
 
 ```sh
 # You can run this from the same terminal as before.
-./run test
+./run test rspec" 
 ```
 
 If everything passes now you can optionally `git add -A && git commit -m

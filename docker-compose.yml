@@ -148,6 +148,13 @@ services:
     ports:
       - "${DOCKER_WEB_PORT_FORWARD:-127.0.0.1:8000}:${PORT:-8000}"
     profiles: [ "web" ]
+    depends_on:
+      js:
+        condition: "service_started"
+        required: false
+      css:
+        condition: "service_started"
+        required: false
   worker:
     <<: *default-app
     command: "bundle exec sidekiq -C config/sidekiq.yml"
@@ -170,14 +177,14 @@ services:
     ports:
       - "${DOCKER_CABLE_PORT_FORWARD:-127.0.0.1:28080}:${CABLE_PORT:-28080}"
     profiles: [ "cable" ]
-
   js:
     <<: *default-assets
     command: "yarn build"
-
+    profiles: [ "web" ]
   css:
     <<: *default-assets
     command: "yarn build:css"
+    profiles: [ "web" ]
   minio:
     image: 'minio/minio:latest'
     ports:
@@ -207,8 +214,9 @@ services:
     ports:
       - '${FORWARD_MAILPIT_PORT:-1025}:1025'
       - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
+    profiles: [ "web" ]
   selenium:
-    image: '${SELENIUM_IMAGE}:selenium/standalone-chrome'
+    image: '${SELENIUM_IMAGE:-selenium/standalone-chrome}'
     logging:
       driver: none #disable noisy output
     extra_hosts:
@@ -217,6 +225,7 @@ services:
       - '/dev/shm:/dev/shm'
     ports:
       -  "5900:5900" #debug enable VNC access
+    profiles: [ "test" ]
 volumes:
   postgres: { }
   redis: { }

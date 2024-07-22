@@ -1,31 +1,23 @@
-version: '2.4'
 services:
   nginx:
     build:
       context: ./.dockerdev/nginx
     ports:
       - "80:80"
-    restart: on-failure:2
+    env_file: &env
+      - .env.prod
     volumes_from:
       - rails
-  rails:
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+  web:
     extends:
       file: docker-compose.yml
-      service: rails
-    environment: &env
-      RAILS_MAX_THREADS: 20
-      RAILS_SERVE_STATIC_FILES: enabled
-      RAILS_LOG_TO_STDOUT: 1
-#    volumes: &volumes
-    restart: on-failure:2
-  sidekiq:
+      service: web
+    env_file: *env
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+  worker:
     extends:
       file: docker-compose.yml
-      service: sidekiq
-    environment: *env
-#    volumes: *volumes
-    restart: on-failure:2
-volumes:
-  bundle:
-  rails_cache:
-  assets:
+      service: worker
+    env_file: *env
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"

@@ -380,8 +380,7 @@
       <value>file://$MODULE_DIR$/vendor/assets</value>
     </entry>
   </component>
-  <component name="RakeTasksCache-v2" failedReloadsCounter="1">
-    <option name="failedReloadsCounter" value="1" />
+  <component name="RakeTasksCache-v2">
     <option name="myRootTask">
       <RakeTaskImpl id="rake">
         <subtasks>
@@ -600,6 +599,7 @@
               <RakeTaskImpl description="Truncate all/specified *.log files in log/ to zero bytes (specify which logs with LOGS=test,development)" fullCommand="log:clear" id="clear" />
             </subtasks>
           </RakeTaskImpl>
+          <RakeTaskImpl description="Merge the results of various SimpleCov coverage reports" fullCommand="merge_coverage_reports" id="merge_coverage_reports" />
           <RakeTaskImpl id="pg_extras">
             <subtasks>
               <RakeTaskImpl description="Configure extensions necessary for other queries to work" fullCommand="pg_extras:add_extensions" id="add_extensions" />
@@ -652,6 +652,12 @@
               <RakeTaskImpl description="Autocorrect RuboCop offenses (only when it's safe)" fullCommand="rubocop:autocorrect" id="autocorrect" />
               <RakeTaskImpl description="Autocorrect RuboCop offenses (safe and unsafe)" fullCommand="rubocop:autocorrect_all" id="autocorrect_all" />
               <RakeTaskImpl description="" fullCommand="rubocop:auto_correct" id="auto_correct" />
+            </subtasks>
+          </RakeTaskImpl>
+          <RakeTaskImpl id="scout">
+            <subtasks>
+              <RakeTaskImpl description="Prints out details of the detected environment" fullCommand="scout:doctor" id="doctor" />
+              <RakeTaskImpl description="Collect logs, settings and environment to help debug issues" fullCommand="scout:support" id="support" />
             </subtasks>
           </RakeTaskImpl>
           <RakeTaskImpl description="Run all specs in spec directory (excluding plugin specs)" fullCommand="spec" id="spec" />

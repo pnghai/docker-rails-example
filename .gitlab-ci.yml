@@ -10,7 +10,7 @@ stages:
   - build # Mỗi stage có thể có nhiều job, ta có thể có build1, build2,....
   - test
   - codecov
-  - release
+  - release #build docker image
   - deploy
 # https://docs.gitlab.com/ee/ci/variables/
 before_script:
@@ -25,10 +25,17 @@ build:
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
   only:
     changes:
-      - Dockerfile
+      - .dockerdev/*
       - app/*
-      - test/*
+      - assets/*
+      - cable/*
+      - config/*
+      - db/*
+      - lib/*
+      - spec/*
       - package.json
+      - tailwind.config.js
+      - Gemfile
       #
 
 test:

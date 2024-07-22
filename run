@@ -41,13 +41,17 @@ function rails {
 function test {
   # Run your Rails tests, use `test -b` to first rebuild your JS and CSS
   local run_build="${1:-}"
+  local coverage="${2:-}"
   local test_command="rspec" # old: rail test
 
   if [ "${run_build}" = "-b" ]; then
     test_command="yarn build && yarn build:css && ${test_command}"
   fi
-
-  _dc -e "RAILS_ENV=test" js bash -c "${test_command}"
+  if [ "${coverage}" = "-c" ]; then
+    _dc -e "RAILS_ENV=test" -e "COVERAGE_ENV=true" js bash -c "${test_command}"
+  else
+    _dc -e "RAILS_ENV=test" js bash -c "${test_command}"
+  fi
 }
 
 function shell {

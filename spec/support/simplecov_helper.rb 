@@ -1,9 +1,0 @@
-# require 'marty/simplecov_helper'
-#
-# module SimpleCovHelper
-#   def self.start!
-#     return unless ENV['COVERAGE'] == 'true'
-#
-#     SimpleCov.start :marty
-#   end
-# end
